@@ -1,0 +1,139 @@
+.lumi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+}
+
+/* Canvas sits behind and around the orb */
+.lumi__canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% - 11px)); /* nudge up past label */
+  pointer-events: none;
+}
+
+/* Orb wrapper */
+.lumi__orb {
+  width: var(--size, 120px);
+  height: var(--size, 120px);
+  border-radius: 50%;
+  position: relative;
+  cursor: default;
+  transition: box-shadow 0.6s ease;
+  box-shadow:
+    0 0 30px var(--orb-glow, rgba(45,212,191,0.3)),
+    0 0 70px color-mix(in srgb, var(--orb-glow, rgba(45,212,191,0.3)) 50%, transparent);
+}
+
+/* Glassmorphic inner core */
+.lumi__core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    color-mix(in srgb, var(--orb-color, #2dd4bf) 40%, #ffffff),
+    color-mix(in srgb, var(--orb-color, #2dd4bf) 60%, #080b12) 50%,
+    #080b12 100%
+  );
+  transition: background 0.6s ease;
+}
+
+/* Specular highlights */
+.lumi__highlight {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  filter: blur(2px);
+  top: 14%;
+  left: 18%;
+  width: 30%;
+  height: 18%;
+  transition: opacity 0.4s;
+}
+.lumi__highlight--2 {
+  top: 58%;
+  left: 62%;
+  width: 13%;
+  height: 9%;
+  background: rgba(255, 255, 255, 0.18);
+  filter: blur(1px);
+}
+
+/* Thin border ring */
+.lumi__orb::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--orb-color, #2dd4bf) 40%, transparent);
+  transition: border-color 0.6s ease;
+}
+
+/* ── State animations ─────────────────────────────────── */
+
+.lumi--idle .lumi__orb {
+  animation: lumiFloat 4s ease-in-out infinite;
+}
+.lumi--listening .lumi__orb {
+  animation: lumiPulse 1.0s ease-in-out infinite;
+}
+.lumi--thinking .lumi__orb {
+  animation: lumiBreath 2s ease-in-out infinite;
+}
+.lumi--speaking .lumi__orb {
+  animation: lumiFloat 2s ease-in-out infinite;
+}
+
+@keyframes lumiFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes lumiPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.06); }
+}
+@keyframes lumiBreath {
+  0%, 100% { transform: scale(0.97); filter: brightness(1); }
+  50%       { transform: scale(1.03); filter: brightness(1.2); }
+}
+
+/* Thinking orbit */
+.lumi__orbit {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  animation: orbitSpin 1.8s linear infinite;
+}
+.lumi__dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167,139,250,0.8);
+}
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Label */
+.lumi__label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  transition: color 0.5s ease;
+}
+.lumi--listening .lumi__label { color: #f87171; }
+.lumi--thinking  .lumi__label { color: #a78bfa; }
+.lumi--speaking  .lumi__label { color: #60a5fa; }
+.lumi--idle      .lumi__label { color: var(--teal-dim); }

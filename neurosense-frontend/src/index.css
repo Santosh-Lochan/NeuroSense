@@ -1,0 +1,69 @@
+/* ═══════════════════════════════════════════════════════════
+   NEUROSENSE — Global Styles
+   Aesthetic: Clinical-cold meets human-warm
+   Fonts: DM Serif Display (editorial) + JetBrains Mono (data)
+   ═══════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Core palette */
+  --bg-deep:      #080b12;
+  --bg-surface:   #0d1120;
+  --bg-raised:    #131929;
+  --bg-hover:     #1a2235;
+
+  /* Bioluminescent accents */
+  --teal:         #2dd4bf;
+  --teal-dim:     #1a8a7a;
+  --teal-glow:    rgba(45, 212, 191, 0.15);
+  --teal-glow-sm: rgba(45, 212, 191, 0.08);
+
+  --blue:         #60a5fa;
+  --blue-dim:     #2563eb;
+
+  --red-soft:     #f87171;
+  --red-glow:     rgba(248, 113, 113, 0.15);
+
+  --green-soft:   #4ade80;
+  --green-glow:   rgba(74, 222, 128, 0.12);
+
+  /* Text */
+  --text-primary:  #e8edf5;
+  --text-secondary: #8896b0;
+  --text-muted:    #4a5568;
+
+  /* Borders */
+  --border:       rgba(45, 212, 191, 0.1);
+  --border-bright: rgba(45, 212, 191, 0.25);
+
+  /* Typography */
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-mono:  'JetBrains Mono', 'Courier New', monospace;
+
+  /* Spacing */
+  --radius:    12px;
+  --radius-lg: 20px;
+  --radius-sm: 6px;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+/* Selection */
+::selection { background: var(--teal-glow); color: var(--teal); }
