@@ -10,9 +10,8 @@ NeuroSense conducts a structured clinical interview through a conversational AI 
 
 ## Demo
 
-![NeuroSense Welcome Screen](https://i.imgur.com/placeholder.png)
+<img width="1919" height="977" alt="image" src="https://github.com/user-attachments/assets/25c977b5-f4e3-45d9-a69d-407f14645240" />
 
-> *Replace the above with an actual screenshot once deployed.*
 
 ---
 
