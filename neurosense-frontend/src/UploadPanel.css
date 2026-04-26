@@ -1,0 +1,356 @@
+/* ── FLOATING ACTION BUTTON ─────────────────────────────────────────────────── */
+.upload-fab {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 200;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+
+  background: var(--surface-2);
+  border: 1px solid rgba(0, 210, 190, 0.3);
+  border-radius: 100px;
+  color: var(--teal);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  /* Persistent teal glow */
+  box-shadow:
+    0 0 16px rgba(0, 210, 190, 0.25),
+    0 0 40px rgba(0, 210, 190, 0.10),
+    0 4px 20px rgba(0, 0, 0, 0.4);
+
+  animation: fabGlow 2.5s ease-in-out infinite;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.upload-fab:hover {
+  background: rgba(0, 210, 190, 0.10);
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 28px rgba(0, 210, 190, 0.45),
+    0 0 60px rgba(0, 210, 190, 0.20),
+    0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+.upload-fab--open {
+  background: rgba(0, 210, 190, 0.08);
+  border-color: rgba(0, 210, 190, 0.6);
+  animation: none;
+  box-shadow:
+    0 0 32px rgba(0, 210, 190, 0.5),
+    0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes fabGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 16px rgba(0, 210, 190, 0.25),
+      0 0 40px rgba(0, 210, 190, 0.10),
+      0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(0, 210, 190, 0.50),
+      0 0 60px rgba(0, 210, 190, 0.20),
+      0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.upload-fab__icon {
+  font-size: 0.9rem;
+  transition: transform 0.2s;
+}
+.upload-fab--open .upload-fab__icon {
+  transform: rotate(180deg);
+}
+.upload-fab__label {
+  white-space: nowrap;
+}
+
+/* ── BACKDROP ────────────────────────────────────────────────────────────────── */
+.upload-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 149;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── SLIDE-IN PANEL ──────────────────────────────────────────────────────────── */
+.upload-panel {
+  position: fixed;
+  bottom: 96px;
+  right: 32px;
+  z-index: 150;
+  width: 380px;
+
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  box-shadow:
+    0 0 40px rgba(0, 210, 190, 0.12),
+    0 20px 60px rgba(0, 0, 0, 0.6);
+
+  /* Hidden by default */
+  opacity: 0;
+  transform: translateY(12px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.upload-panel--open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+@media (max-width: 480px) {
+  .upload-panel {
+    right: 12px;
+    left: 12px;
+    width: auto;
+    bottom: 88px;
+  }
+  .upload-fab {
+    right: 16px;
+    bottom: 20px;
+  }
+}
+
+/* ── PANEL HEADER ────────────────────────────────────────────────────────────── */
+.upload-panel__header {}
+
+.upload-panel__title {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 6px;
+}
+
+.upload-panel__sub {
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+/* ── FILE SLOTS ──────────────────────────────────────────────────────────────── */
+.upload-panel__slots {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Each row */
+.uslot {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* ── STATUS DOT ──────────────────────────────────────────────────────────────── */
+.udot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 18px;
+  border: 1px solid currentColor;
+  transition: background 0.3s, box-shadow 0.3s, color 0.3s;
+}
+
+/* idle — dim grey ring, no fill */
+.udot--idle {
+  color: var(--text-3);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* uploading — flashing yellow */
+.udot--uploading {
+  color: #ffb347;
+  background: #ffb347;
+  box-shadow: 0 0 8px rgba(255, 179, 71, 0.8);
+  animation: dotFlash 0.6s ease-in-out infinite;
+}
+@keyframes dotFlash {
+  0%, 100% { opacity: 1;   box-shadow: 0 0 8px rgba(255,179,71,0.8); }
+  50%       { opacity: 0.3; box-shadow: 0 0 2px rgba(255,179,71,0.2); }
+}
+
+/* success — solid green glow */
+.udot--success {
+  color: #39d98a;
+  background: #39d98a;
+  box-shadow: 0 0 10px rgba(57, 217, 138, 0.8), 0 0 20px rgba(57, 217, 138, 0.3);
+  animation: dotPulseGreen 2s ease-in-out infinite;
+}
+@keyframes dotPulseGreen {
+  0%, 100% { box-shadow: 0 0 10px rgba(57,217,138,0.8), 0 0 20px rgba(57,217,138,0.3); }
+  50%       { box-shadow: 0 0 16px rgba(57,217,138,1),   0 0 32px rgba(57,217,138,0.5); }
+}
+
+/* error — solid red */
+.udot--error {
+  color: #ff4d6d;
+  background: #ff4d6d;
+  box-shadow: 0 0 10px rgba(255, 77, 109, 0.7);
+  animation: none;
+}
+
+/* ── SLOT BODY ───────────────────────────────────────────────────────────────── */
+.uslot__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uslot__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.uslot__icon {
+  font-size: 0.9rem;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.uslot__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.uslot__label {
+  font-size: 0.75rem;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+.uslot__req {
+  color: var(--teal);
+}
+
+.uslot__hint {
+  font-size: 0.62rem;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+
+/* Uploaded filename row */
+.uslot__file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(57, 217, 138, 0.06);
+  border: 1px solid rgba(57, 217, 138, 0.2);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+
+.uslot__filename {
+  flex: 1;
+  font-size: 0.68rem;
+  color: #39d98a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.04em;
+}
+
+.uslot__remove {
+  font-size: 0.6rem;
+  color: var(--text-3);
+  padding: 2px 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.uslot__remove:hover { color: var(--red); }
+
+/* Choose file button */
+.uslot__pick {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border-2);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  align-self: flex-start;
+}
+.uslot__pick:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-dim);
+}
+.uslot__pick:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.uslot__pick--error {
+  border-color: rgba(255,77,109,0.4) !important;
+  color: var(--red) !important;
+  background: rgba(255,77,109,0.06) !important;
+}
+
+/* ── SUBMIT BUTTON ───────────────────────────────────────────────────────────── */
+.upload-panel__submit {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 13px 20px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-3);
+  cursor: not-allowed;
+  transition: all 0.25s ease;
+}
+
+.upload-panel__submit--ready {
+  border-color: var(--teal);
+  background: rgba(0, 210, 190, 0.08);
+  color: var(--teal);
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(0, 210, 190, 0.2);
+}
+.upload-panel__submit--ready:hover {
+  background: rgba(0, 210, 190, 0.15);
+  box-shadow: 0 0 28px rgba(0, 210, 190, 0.4);
+}
+
+/* ── NOTE ────────────────────────────────────────────────────────────────────── */
+.upload-panel__note {
+  font-size: 0.62rem;
+  color: var(--text-3);
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
