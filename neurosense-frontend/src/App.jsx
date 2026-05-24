@@ -3,7 +3,7 @@ import Orb from './Orb';
 import UploadPanel from './UploadPanel';
 import './App.css';
 
-const BACKEND = 'http://localhost:8000';
+const BACKEND = 'https://santos-loc-neurosense-api.hf.space';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function formatTime(seconds) {
