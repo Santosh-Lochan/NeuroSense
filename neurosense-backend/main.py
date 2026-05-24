@@ -195,7 +195,16 @@ async def analyze(audio: UploadFile = File(...), video: UploadFile = File(None),
     try:
         with open(raw_audio, "wb") as f: shutil.copyfileobj(audio.file, f)
         await asyncio.to_thread(to_wav, raw_audio, wav_path)
-        transcribed_text = await asyncio.to_thread(_transcribe_wav, wav_path)
+        
+        # --- THE FIX: Skip Whisper if a transcript is uploaded ---
+        if transcript is not None:
+            log.info("  [Transcript] File provided! Skipping Whisper...")
+            tsv_bytes = await transcript.read()
+            transcribed_text = tsv_bytes.decode("utf-8")
+        else:
+            log.info("  [Whisper] No transcript provided. Running Whisper...")
+            transcribed_text = await asyncio.to_thread(_transcribe_wav, wav_path)
+        # ---------------------------------------------------------
 
         # 1. Feature Extraction Pipeline
         text_feat, wavlm_feat = await asyncio.gather(
@@ -213,7 +222,6 @@ async def analyze(audio: UploadFile = File(...), video: UploadFile = File(None),
         clinical_threshold = 0.45
         prediction = 1 if prob >= clinical_threshold else 0
 
-        # Returning logits as 'confidence' perfectly syncs with your React App's sigmoid gauge
         return {
             "prediction": prediction,
             "label": "High Likelihood" if prediction == 1 else "Low Likelihood",
