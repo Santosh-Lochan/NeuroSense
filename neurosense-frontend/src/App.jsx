@@ -396,7 +396,8 @@ export default function App() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
+  // Button unlocks at 10 mins (600 seconds) AND when Lumi is idle
+  const canForceEnd = elapsed >= 600 && orbState === 'idle';
   // ── render ────────────────────────────────────────────────────────────────
   return (
     <div className="app">
@@ -505,6 +506,16 @@ export default function App() {
                 </span>
               </button>
             </div>
+            {/* NEW ESCAPE HATCH BUTTON */}
+            <button
+              className={`force-end-fab ${canForceEnd ? 'force-end-fab--ready' : ''}`}
+              onClick={finishAndAnalyze}
+              disabled={!canForceEnd}
+              title={!canForceEnd ? "Available after 10 minutes when Lumi is on standby" : "End interview and analyze"}
+            >
+              <span className="force-end-fab__icon">⏹</span>
+              <span className="force-end-fab__label">End Interview</span>
+            </button>
           </div>
         )}
 
