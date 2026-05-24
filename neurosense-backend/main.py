@@ -112,11 +112,44 @@ def _extract_text_features(text: str) -> torch.Tensor:
     return out.last_hidden_state[:, 0, :] # Shape: [1, 768]
 
 def _extract_wavlm_features(wav_path: str) -> torch.Tensor:
+    log.info("  [WavLM] Starting chunked acoustic extraction to preserve RAM...")
     audio, _ = librosa.load(wav_path, sr=16000)
-    inputs = wavlm_extractor(audio, sampling_rate=16000, return_tensors="pt").to(DEVICE)
-    with torch.no_grad():
-        out = wavlm_model(**inputs)
-    return out.last_hidden_state.mean(dim=1) # Shape: [1, 768]
+    
+    chunk_length_s = 30 # Process exactly 30 seconds of audio at a time
+    chunk_samples = chunk_length_s * 16000
+    
+    all_chunk_features = []
+    
+    # Loop through the massive audio file in 30-second windows
+    for i in range(0, len(audio), chunk_samples):
+        chunk = audio[i : i + chunk_samples]
+        
+        # Skip tiny micro-chunks at the very end (less than 1 second)
+        if len(chunk) < 16000:
+            continue
+            
+        inputs = wavlm_extractor(chunk, sampling_rate=16000, return_tensors="pt").to(DEVICE)
+        
+        with torch.no_grad():
+            out = wavlm_model(**inputs)
+            
+        # Get the mean representation for this specific 30-second chunk
+        chunk_feat = out.last_hidden_state.mean(dim=1) # Shape: [1, 768]
+        all_chunk_features.append(chunk_feat)
+        
+        # Force the server to dump the RAM before loading the next chunk
+        import gc
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            
+    log.info(f"  [WavLM] Successfully processed {len(all_chunk_features)} audio chunks.")
+    
+    # Mathematically average all the chunks together into ONE final tensor
+    # This perfectly mimics the temporal pooling your model expects!
+    final_audio_feat = torch.stack(all_chunk_features).mean(dim=0) # Shape: [1, 768]
+    
+    return final_audio_feat # Shape: [1, 768]
 
 def _extract_vision_features() -> torch.Tensor:
     # Modality Imputation: We return a neutral 68-dim tensor since OpenFace C++ binaries aren't running
