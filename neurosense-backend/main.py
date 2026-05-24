@@ -115,16 +115,25 @@ def _extract_wavlm_features(wav_path: str) -> torch.Tensor:
     log.info("  [WavLM] Starting chunked acoustic extraction to preserve RAM...")
     audio, _ = librosa.load(wav_path, sr=16000)
     
-    chunk_length_s = 30 # Process exactly 30 seconds of audio at a time
+    chunk_length_s = 30 
     chunk_samples = chunk_length_s * 16000
     
     all_chunk_features = []
     
+    # Calculate total chunks so we know exactly how far along we are
+    total_chunks = len(range(0, len(audio), chunk_samples))
+    current_chunk = 0
+    
     # Loop through the massive audio file in 30-second windows
     for i in range(0, len(audio), chunk_samples):
+        current_chunk += 1
+        
+        # Log progress at the start, every 5th chunk, and at the very end
+        if current_chunk % 5 == 0 or current_chunk == 1 or current_chunk == total_chunks:
+            log.info(f"  [WavLM] Processing chunk {current_chunk}/{total_chunks} ({(current_chunk/total_chunks)*100:.0f}% Complete)")
+
         chunk = audio[i : i + chunk_samples]
         
-        # Skip tiny micro-chunks at the very end (less than 1 second)
         if len(chunk) < 16000:
             continue
             
@@ -133,11 +142,9 @@ def _extract_wavlm_features(wav_path: str) -> torch.Tensor:
         with torch.no_grad():
             out = wavlm_model(**inputs)
             
-        # Get the mean representation for this specific 30-second chunk
-        chunk_feat = out.last_hidden_state.mean(dim=1) # Shape: [1, 768]
+        chunk_feat = out.last_hidden_state.mean(dim=1) 
         all_chunk_features.append(chunk_feat)
         
-        # Force the server to dump the RAM before loading the next chunk
         import gc
         gc.collect()
         if torch.cuda.is_available():
@@ -145,9 +152,7 @@ def _extract_wavlm_features(wav_path: str) -> torch.Tensor:
             
     log.info(f"  [WavLM] Successfully processed {len(all_chunk_features)} audio chunks.")
     
-    # Mathematically average all the chunks together into ONE final tensor
-    # This perfectly mimics the temporal pooling your model expects!
-    final_audio_feat = torch.stack(all_chunk_features).mean(dim=0) # Shape: [1, 768]
+    final_audio_feat = torch.stack(all_chunk_features).mean(dim=0) 
     
     return final_audio_feat # Shape: [1, 768]
 
