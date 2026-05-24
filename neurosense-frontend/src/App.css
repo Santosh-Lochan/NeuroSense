@@ -521,3 +521,47 @@
   .chat             { height: 260px; }
   .welcome__body    { padding: 20px; }
 }
+
+/* ── FORCE END INTERVIEW BUTTON ── */
+.force-end-fab {
+  position: fixed;
+  bottom: 100px; /* Sits right above the upload-fab */
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  height: 48px;
+  border-radius: 24px;
+  background: rgba(20, 20, 25, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: not-allowed;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.5; /* Translucent when disabled */
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+
+.force-end-fab--ready {
+  opacity: 1; /* Opaque when ready */
+  color: white;
+  border-color: rgba(0, 240, 255, 0.5);
+  background: rgba(20, 20, 25, 0.95);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.1);
+  cursor: pointer;
+}
+
+.force-end-fab--ready:hover {
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.5), inset 0 0 15px rgba(0, 240, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.force-end-fab__icon {
+  font-size: 1.2rem;
+}
