@@ -138,7 +138,7 @@ export default function App() {
         },
         body: JSON.stringify({
           text: text,
-          model_id: "eleven_turbo_v2", // Keeps latency under half a second
+          model_id: "eleven_monolingual_v1", // Keeps latency under half a second
           voice_settings: { 
             stability: 0.6, 
             similarity_boost: 0.75 
