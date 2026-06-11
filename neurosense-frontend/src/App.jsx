@@ -120,36 +120,54 @@ export default function App() {
   const relTime = () => (Date.now() - sessionStart.current) / 1000;
 
 // ── TTS ───────────────────────────────────────────────────────────────────
-const speak = useCallback((text) => new Promise((resolve) => {
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  
-  // Tweak the delivery to sound less robotic
-  utt.rate  = 1.05; 
-  utt.pitch = 1.1; 
-  
-  const trySetVoice = () => {
-    const voices = window.speechSynthesis.getVoices();
-    // Try to find a premium/natural sounding Google or Microsoft voice
-    const pref = voices.find(v => v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft Hazel'));
-    if (pref) utt.voice = pref;
-  };
-  
-  trySetVoice();
-  if (!utt.voice) {
-    window.speechSynthesis.addEventListener('voiceschanged', trySetVoice, { once: true });
-  }
-  
-  const wordCount    = text.split(/\s+/).length;
-  const estimatedMs  = Math.max((wordCount / 2.5) * 1000 + 3000, 4000);
-  const fallback     = setTimeout(resolve, estimatedMs);
-  
-  utt.onend  = () => { clearTimeout(fallback); resolve(); };
-  utt.onerror = ()  => { clearTimeout(fallback); resolve(); };
-  
-  window.speechSynthesis.speak(utt);
-}), []);
-
+    const speak = useCallback((text) => new Promise((resolve) => {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    
+    // Adjust for a softer, more calming female tone
+    utt.rate  = 0.95; 
+    utt.pitch = 1.15; 
+    
+    const trySetVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Priority list of the best native female voices across MacOS, Windows, and Chrome
+      const preferredVoices = [
+        'Google US English', // Chrome's high-quality female voice
+        'Samantha',          // MacOS premium female voice
+        'Microsoft Zira',    // Windows native female voice
+        'Microsoft Hazel',   // Windows UK female voice
+        'Google UK English Female'
+      ];
+      
+      let selectedVoice = null;
+      for (let name of preferredVoices) {
+        selectedVoice = voices.find(v => v.name.includes(name));
+        if (selectedVoice) break;
+      }
+      
+      // Fallback if none of the specific premium ones are found
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.name.includes('Female') || v.name.includes('female') || v.name.includes('Zoe'));
+      }
+      
+      if (selectedVoice) utt.voice = selectedVoice;
+    };
+    
+    trySetVoice();
+    if (!utt.voice) {
+      window.speechSynthesis.addEventListener('voiceschanged', trySetVoice, { once: true });
+    }
+    
+    const wordCount    = text.split(/\s+/).length;
+    const estimatedMs  = Math.max((wordCount / 2.5) * 1000 + 3000, 4000);
+    const fallback     = setTimeout(resolve, estimatedMs);
+    
+    utt.onend   = () => { clearTimeout(fallback); resolve(); };
+    utt.onerror = () => { clearTimeout(fallback); resolve(); };
+    
+    window.speechSynthesis.speak(utt);
+  }), []);
   // ── sendMessage ───────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (userText) => {
     setOrbState('thinking');
