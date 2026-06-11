@@ -120,54 +120,57 @@ export default function App() {
   const relTime = () => (Date.now() - sessionStart.current) / 1000;
 
 // ── TTS ───────────────────────────────────────────────────────────────────
-    const speak = useCallback((text) => new Promise((resolve) => {
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
+// ── TTS (ElevenLabs Integration) ──────────────────────────────────────────
+  const speak = useCallback(async (text) => {
+    // 1. Paste the API key you generated here
+    const ELEVENLABS_API_KEY = "sk_25759670c478b46b3da1a4dbce98a46a285d959dfc66d671"; 
     
-    // Adjust for a softer, more calming female tone
-    utt.rate  = 0.95; 
-    utt.pitch = 1.15; 
-    
-    const trySetVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      
-      // Priority list of the best native female voices across MacOS, Windows, and Chrome
-      const preferredVoices = [
-        'Google US English', // Chrome's high-quality female voice
-        'Samantha',          // MacOS premium female voice
-        'Microsoft Zira',    // Windows native female voice
-        'Microsoft Hazel',   // Windows UK female voice
-        'Google UK English Female'
-      ];
-      
-      let selectedVoice = null;
-      for (let name of preferredVoices) {
-        selectedVoice = voices.find(v => v.name.includes(name));
-        if (selectedVoice) break;
-      }
-      
-      // Fallback if none of the specific premium ones are found
-      if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.name.includes('Female') || v.name.includes('female') || v.name.includes('Zoe'));
-      }
-      
-      if (selectedVoice) utt.voice = selectedVoice;
-    };
-    
-    trySetVoice();
-    if (!utt.voice) {
-      window.speechSynthesis.addEventListener('voiceschanged', trySetVoice, { once: true });
+    // 2. Paste Eryn's Voice ID here
+    const VOICE_ID = "DXFkLCBUTmvXpp2QwZjA"; 
+
+    try {
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'xi-api-key': ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: "eleven_turbo_v2", // Keeps latency under half a second
+          voice_settings: { 
+            stability: 0.6, 
+            similarity_boost: 0.75 
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error('ElevenLabs API failed');
+
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+
+      return new Promise((resolve) => {
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+        };
+        audio.onerror = () => resolve();
+        audio.play();
+      });
+
+    } catch (err) {
+      console.error("Voice generation failed:", err);
+      // Failsafe: instantly drops back to native browser speech if anything goes wrong
+      return new Promise((resolve) => {
+        const fallback = new SpeechSynthesisUtterance(text);
+        fallback.onend = resolve;
+        window.speechSynthesis.speak(fallback);
+      });
     }
-    
-    const wordCount    = text.split(/\s+/).length;
-    const estimatedMs  = Math.max((wordCount / 2.5) * 1000 + 3000, 4000);
-    const fallback     = setTimeout(resolve, estimatedMs);
-    
-    utt.onend   = () => { clearTimeout(fallback); resolve(); };
-    utt.onerror = () => { clearTimeout(fallback); resolve(); };
-    
-    window.speechSynthesis.speak(utt);
-  }), []);
+  }, []);
   // ── sendMessage ───────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (userText) => {
     setOrbState('thinking');
