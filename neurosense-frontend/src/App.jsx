@@ -119,28 +119,36 @@ export default function App() {
 
   const relTime = () => (Date.now() - sessionStart.current) / 1000;
 
-  // ── TTS ───────────────────────────────────────────────────────────────────
-  const speak = useCallback((text) => new Promise((resolve) => {
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.rate  = 0.90;
-    utt.pitch = 1.05;
-    const trySetVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      const pref   = voices.find(v => /samantha|karen|moira|zoe|female/i.test(v.name));
-      if (pref) utt.voice = pref;
-    };
-    trySetVoice();
-    if (!utt.voice) {
-      window.speechSynthesis.addEventListener('voiceschanged', trySetVoice, { once: true });
-    }
-    const wordCount    = text.split(/\s+/).length;
-    const estimatedMs  = Math.max((wordCount / 2.5) * 1000 + 3000, 4000);
-    const fallback     = setTimeout(resolve, estimatedMs);
-    utt.onend  = () => { clearTimeout(fallback); resolve(); };
-    utt.onerror = ()  => { clearTimeout(fallback); resolve(); };
-    window.speechSynthesis.speak(utt);
-  }), []);
+// ── TTS ───────────────────────────────────────────────────────────────────
+const speak = useCallback((text) => new Promise((resolve) => {
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  
+  // Tweak the delivery to sound less robotic
+  utt.rate  = 1.05; 
+  utt.pitch = 1.1; 
+  
+  const trySetVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    // Try to find a premium/natural sounding Google or Microsoft voice
+    const pref = voices.find(v => v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft Hazel'));
+    if (pref) utt.voice = pref;
+  };
+  
+  trySetVoice();
+  if (!utt.voice) {
+    window.speechSynthesis.addEventListener('voiceschanged', trySetVoice, { once: true });
+  }
+  
+  const wordCount    = text.split(/\s+/).length;
+  const estimatedMs  = Math.max((wordCount / 2.5) * 1000 + 3000, 4000);
+  const fallback     = setTimeout(resolve, estimatedMs);
+  
+  utt.onend  = () => { clearTimeout(fallback); resolve(); };
+  utt.onerror = ()  => { clearTimeout(fallback); resolve(); };
+  
+  window.speechSynthesis.speak(utt);
+}), []);
 
   // ── sendMessage ───────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (userText) => {
