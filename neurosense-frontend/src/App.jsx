@@ -119,58 +119,58 @@ export default function App() {
 
   const relTime = () => (Date.now() - sessionStart.current) / 1000;
 
-// ── TTS ───────────────────────────────────────────────────────────────────
-// ── TTS (ElevenLabs Integration) ──────────────────────────────────────────
-  const speak = useCallback(async (text) => {
-    // 1. Paste the API key you generated here
-    const ELEVENLABS_API_KEY = "sk_25759670c478b46b3da1a4dbce98a46a285d959dfc66d671"; 
+// ── TTS (Deep & Grounded "Svetlana-Style" English Voices) ───────────
+  const speak = useCallback((text) => new Promise((resolve) => {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
     
-    // 2. Paste Eryn's Voice ID here
-    const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; 
-
-    try {
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'xi-api-key': ELEVENLABS_API_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          text: text,
-          model_id: "eleven_monolingual_v1", // Keeps latency under half a second
-          voice_settings: { 
-            stability: 0.6, 
-            similarity_boost: 0.75 
-          }
-        })
-      });
-
-      if (!response.ok) throw new Error('ElevenLabs API failed');
-
-      const blob = await response.blob();
-      const audioUrl = URL.createObjectURL(blob);
-      const audio = new Audio(audioUrl);
-
-      return new Promise((resolve) => {
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          resolve();
-        };
-        audio.onerror = () => resolve();
-        audio.play();
-      });
-
-    } catch (err) {
-      console.error("Voice generation failed:", err);
-      // Failsafe: instantly drops back to native browser speech if anything goes wrong
-      return new Promise((resolve) => {
-        const fallback = new SpeechSynthesisUtterance(text);
-        fallback.onend = resolve;
-        window.speechSynthesis.speak(fallback);
-      });
+    utt.rate  = 0.95; 
+    utt.pitch = 0.85; 
+    
+    const trySetVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      
+      const targetVoices = [
+        'Natasha Online',  
+        'Sonia Online',    
+        'Michelle Online', 
+        'Aria Online',     
+        'Samantha',
+        'Zira'
+      ];
+      
+      let selectedVoice = null;
+      
+      for (const target of targetVoices) {
+        selectedVoice = voices.find(v => v.name.includes(target) && v.lang.includes('en'));
+        if (selectedVoice) break;
+      }
+      
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => 
+          v.lang.includes('en') && 
+          (v.name.includes('Female') || v.name.includes('female')) &&
+          !v.name.includes('Male') && !v.name.includes('Guy') && !v.name.includes('David')
+        );
+      }
+      
+      if (selectedVoice) utt.voice = selectedVoice;
+    };
+    
+    trySetVoice();
+    if (!utt.voice) {
+      window.speechSynthesis.addEventListener('voiceschanged', trySetVoice, { once: true });
     }
-  }, []);
+    
+    const wordCount    = text.split(/\s+/).length;
+    const estimatedMs  = Math.max((wordCount / 2.5) * 1000 + 3000, 4000);
+    const fallback     = setTimeout(resolve, estimatedMs);
+    
+    utt.onend   = () => { clearTimeout(fallback); resolve(); };
+    utt.onerror = () => { clearTimeout(fallback); resolve(); };
+    
+    window.speechSynthesis.speak(utt);
+  }), []);
   // ── sendMessage ───────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (userText) => {
     setOrbState('thinking');
