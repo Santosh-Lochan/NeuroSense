@@ -126,7 +126,7 @@ export default function App() {
     const ELEVENLABS_API_KEY = "sk_25759670c478b46b3da1a4dbce98a46a285d959dfc66d671"; 
     
     // 2. Paste Eryn's Voice ID here
-    const VOICE_ID = "DXFkLCBUTmvXpp2QwZjA"; 
+    const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; 
 
     try {
       const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
